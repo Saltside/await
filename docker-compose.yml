@@ -1,0 +1,14 @@
+version: '2'
+services:
+  mongodb:
+    image: mongo:3
+
+  redis:
+    image: redis:latest
+
+  http:
+    image: nginx:latest
+
+  await:
+    image: saltside/await
+    build: .

@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+main() {
+
+	local subcommand="${1:-}"
+	shift
+
+	case "$subcommand" in
+		http)
+			local host timeout=60 counter=0 retry=3
+
+			while getopts ":h:t:r:" opt; do
+
+				case "${opt}" in
+					h)
+						host="${OPTARG}"
+						;;
+					t)
+						timeout="${OPTARG}"
+						;;
+					r)
+						retry="${OPTARG}"
+						;;
+					\?)
+						echo "Invalid option: -${OPTARG}" 1>&2
+						return 1
+						;;
+					:)
+						echo "Option -${OPTARG} requires an argument." 1>&2
+						return 1
+						;;
+				esac
+			done
+
+			shift $((OPTIND-1))
+
+			while [ "${counter}" -lt "${retry}" ]; do
+				if curl -s --fail -m "${timeout}" "${host}" > /dev/null; then
+					echo "http request to ${host} succeeded ."
+					return 0
+				else
+					((counter++))
+				fi
+			done
+
+			echo "http request to ${host} timed out after ${timeout} seconds and ${counter} retries" 1>&2
+			return 1
+			;;
+
+		mongodb)
+			local host port=27017 counter=0 retry=3
+			while getopts ":h:p:r:" opt; do
+				case "${opt}" in
+					h)
+						host="${OPTARG}"
+						;;
+					p)
+						port="${OPTARG}"
+						;;
+					r)
+						retry="${OPTARG}"
+						;;
+					\?)
+						echo "Invalid option: -${OPTARG} for mongo connection check." 1>&2
+						return 1
+						;;
+					:)
+						echo "Option -${OPTARG} requires an argument." 1>&2
+						return 1
+						;;
+				esac
+			done
+
+			shift $((OPTIND-1))
+
+			while [ "${counter}" -lt "${retry}" ]; do
+				if mongo --quiet "${host}:${port}/local" --eval 'db.stats()' > /dev/null ; then
+					echo "Mongo connection request to ${host}:${port} succeeded."
+					return 0
+				else
+					((counter++))
+				fi
+			done
+
+			echo "mongo connection request to ${host}:${port} failed after ${counter} retry(s)" 1>&2
+			return 1
+			;;
+
+		redis)
+			local host port=6379 counter=0 retry=3
+			while getopts ":h:p:r:" opt; do
+				case "${opt}" in
+					h)
+						host="${OPTARG}"
+						;;
+					p)
+						port="${OPTARG}"
+						;;
+					r)
+						retry="${OPTARG}"
+						;;
+					\?)
+						echo "Invalid option: -${OPTARG} for redis connection check." 1>&2
+						return 1
+						;;
+					:)
+						echo "Option -${OPTARG} requires an argument." 1>&2
+						return 1
+						;;
+				esac
+			done
+
+			shift $((OPTIND-1))
+
+			while [ "${counter}" -lt "${retry}" ]; do
+				if redis-cli -h "${host}" -p "${port}" ping > /dev/null ; then
+					echo "Redis connection request to ${host}:${port} succeeded."
+					return 0
+				else
+					((counter++))
+				fi
+			done
+
+			echo "Redis connection request to ${host}:${port} failed after ${counter} retry(s)" 1>&2
+			return 1
+			;;
+
+		*)
+			echo "Unknown resource." 1>&2
+			echo "Usage: " 1>&2
+			# TODO: to be filled later
+			return 1
+
+	esac
+}
+
+main "$@"
