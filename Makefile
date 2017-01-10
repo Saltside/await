@@ -5,7 +5,7 @@ ENVIRONMENT:=tmp/environment
 
 $(ENVIRONMENT): docker-compose.yml
 	docker-compose build
-	docker-compose up -d mongodb redis http
+	docker-compose up -d mongodb redis http dynamodb
 	mkdir -p $(@D)
 	touch $@
 
@@ -22,6 +22,6 @@ test-lint:
 test-ci: test-lint test-bin
 
 .PHONY: clean
-clean: 
+clean:
 	docker-compose down
 	rm -rf $(ENVIRONMENT)

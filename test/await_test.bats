@@ -34,3 +34,18 @@
 	run await http -h junk -t 10 -r 1
 	[ $status -eq 1 ]
 }
+
+@test "successful dynamodb connection" {
+	run await dynamodb -- --endpoint-url "${DYNAMO_DB_URL}"
+	[ $status -eq 0 ]
+}
+
+@test "successful dynamodb connection with timeout" {
+	run await dynamodb -t 60 -- --endpoint-url "${DYNAMO_DB_URL}"
+	[ $status -eq 0 ]
+}
+
+@test "unsuccessful dynamodb connection with timeout" {
+	run await dynamodb -t 20 -- --endpoint-url "http://junk:8080"
+	[ $status -eq 1 ]
+}

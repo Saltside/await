@@ -127,6 +127,41 @@ main() {
 			return 1
 			;;
 
+		dynamodb)
+			local timeout=60 retry=3 counter=0
+			while getopts ":t:r:" opt; do
+				case "${opt}" in
+					t)
+						timeout="${OPTARG}"
+						;;
+					r)
+						retry="${OPTARG}"
+						;;
+					\?)
+						echo "Invalid option: -${OPTARG} for dynamodb connection check." 1>&2
+						return 1
+						;;
+					:)
+						echo "Option -${OPTARG} requires an argument." 1>&2
+						return 1
+						;;
+				esac
+			done
+
+			shift $((OPTIND-1))
+
+			while [ "${counter}" -lt "${retry}" ]; do
+				if aws dynamodb --cli-connect-timeout "${timeout}" "$@" list-tables > /dev/null ; then
+					echo "Dynamodb connection request succeeded."
+					return 0
+				else
+					((counter++))
+				fi
+			done
+
+			echo "Dynamodb connection request failed after ${timeout} seconds." 1>&2
+			return 1
+			;;
 		*)
 			echo "Unknown resource." 1>&2
 			echo "Usage: " 1>&2
