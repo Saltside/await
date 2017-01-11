@@ -3,7 +3,6 @@ FROM alpine:3.5
 RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
 	&& apk add --no-cache \
 			bash \
-			ca-certificates \
 			curl \
 			mongodb \
 			py2-pip \
