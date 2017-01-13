@@ -1,7 +1,5 @@
 FROM alpine:3.5
 
-MAINTAINER Sitesh Jalan <sitesh.jalan@gmail.com>
-
 RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
 	&& apk add --no-cache \
 			bash \
@@ -10,8 +8,8 @@ RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositorie
 			mongodb \
 			py2-pip \
 			redis \
-	&& pip install \
-		awscli \
+			mysql-client \
+	&& pip install awscli \
 	&& curl -sSL -o /tmp/bats.tar.gz 'https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz' \
 	&& tar xzvf /tmp/bats.tar.gz -C /tmp \
 	&& cd /tmp/bats-0.4.0 \

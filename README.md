@@ -5,10 +5,11 @@
 ## Overview
 
 ## Resources
-* http:
+* http
 * redis
 * mongodb
-* dynamodb 
+* dynamodb
+* mysql
 
 ## Usage
 

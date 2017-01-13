@@ -7,18 +7,14 @@ main() {
 	local subcommand="${1:-}"
 	shift
 
-	case "$subcommand" in
+	case "${subcommand}" in
 		http)
-			local host timeout=60 counter=0 retry=3
+			local host counter=0 retry=3
 
-			while getopts ":h:t:r:" opt; do
-
+			while getopts ":h:r:" opt; do
 				case "${opt}" in
 					h)
 						host="${OPTARG}"
-						;;
-					t)
-						timeout="${OPTARG}"
 						;;
 					r)
 						retry="${OPTARG}"
@@ -37,7 +33,7 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if curl -s --fail -m "${timeout}" "${host}" > /dev/null; then
+				if curl -s --fail "$@" "${host}" > /dev/null; then
 					echo "http request to ${host} succeeded ."
 					return 0
 				else
@@ -45,12 +41,13 @@ main() {
 				fi
 			done
 
-			echo "http request to ${host} timed out after ${timeout} seconds and ${counter} retries" 1>&2
+			echo "http request to ${host} failed with ${counter} retry(s)." 1>&2
 			return 1
 			;;
 
 		mongodb)
 			local host port=27017 counter=0 retry=3
+
 			while getopts ":h:p:r:" opt; do
 				case "${opt}" in
 					h)
@@ -84,12 +81,13 @@ main() {
 				fi
 			done
 
-			echo "mongo connection request to ${host}:${port} failed after ${counter} retry(s)" 1>&2
+			echo "mongo connection request to ${host}:${port} failed with ${counter} retry(s)" 1>&2
 			return 1
 			;;
 
 		redis)
 			local host port=6379 counter=0 retry=3
+
 			while getopts ":h:p:r:" opt; do
 				case "${opt}" in
 					h)
@@ -123,17 +121,14 @@ main() {
 				fi
 			done
 
-			echo "Redis connection request to ${host}:${port} failed after ${counter} retry(s)" 1>&2
+			echo "Redis connection request to ${host}:${port} failed with ${counter} retry(s)" 1>&2
 			return 1
 			;;
 
 		dynamodb)
-			local timeout=60 retry=3 counter=0
-			while getopts ":t:r:" opt; do
+			local retry=3 counter=0
+			while getopts ":r:" opt; do
 				case "${opt}" in
-					t)
-						timeout="${OPTARG}"
-						;;
 					r)
 						retry="${OPTARG}"
 						;;
@@ -151,7 +146,7 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if aws dynamodb --cli-connect-timeout "${timeout}" "$@" list-tables > /dev/null ; then
+				if aws dynamodb "$@" list-tables > /dev/null ; then
 					echo "Dynamodb connection request succeeded."
 					return 0
 				else
@@ -159,9 +154,50 @@ main() {
 				fi
 			done
 
-			echo "Dynamodb connection request failed after ${timeout} seconds." 1>&2
+			echo "Dynamodb connection request failed with ${counter} retry(s)." 1>&2
 			return 1
 			;;
+
+		mysql)
+			local host port=3306 counter=0 retry=3
+
+			while getopts ":h:p:r:" opt; do
+				case "${opt}" in
+					h)
+						host="${OPTARG}"
+						;;
+					p)
+						port="${OPTARG}"
+						;;
+					r)
+						retry="${OPTARG}"
+						;;
+					\?)
+						echo "Invalid option: -${OPTARG} for mysql connection check." 1>&2
+						return 1
+						;;
+					:)
+						echo "Option -${OPTARG} requires an argument." 1>&2
+						return 1
+						;;
+				esac
+			done
+
+			shift $((OPTIND-1))
+
+			while [ "${counter}" -lt "${retry}" ]; do
+				if mysql -s --host="${host}" --port="${port}" "$@" --execute="show tables;" > /dev/null ; then
+					echo "Mysql connection request succeeded."
+					return 0
+				else
+					((counter++))
+				fi
+			done
+
+			echo "Mysql connection request failed with ${counter} retry(s)." 1>&2
+			return 1
+			;;
+
 		*)
 			echo "Unknown resource." 1>&2
 			echo "Usage: " 1>&2
