@@ -1,0 +1,9 @@
+#!/usr/bin/env python2
+import sys, pymongo
+
+def main(argv):
+    client = pymongo.MongoClient(argv, serverSelectionTimeoutMS=1000)
+    print client.server_info()
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
