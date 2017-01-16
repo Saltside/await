@@ -198,6 +198,46 @@ main() {
 			return 1
 			;;
 
+		memcached)
+			local host port=11211 counter=0 retry=3
+
+			while getopts ":h:p:r:" opt; do
+				case "${opt}" in
+					h)
+						host="${OPTARG}"
+						;;
+					p)
+						port="${OPTARG}"
+						;;
+					r)
+						retry="${OPTARG}"
+						;;
+					\?)
+						echo "Invalid option: -${OPTARG} for memcached connection check." 1>&2
+						return 1
+						;;
+					:)
+						echo "Option -${OPTARG} requires an argument." 1>&2
+						return 1
+						;;
+				esac
+			done
+
+			shift $((OPTIND-1))
+
+			while [ "${counter}" -lt "${retry}" ]; do
+				if echo stats | nc "${host}" "${port}" > /dev/null ; then
+					echo "Memcached connection request succeeded."
+					return 0
+				else
+					((counter++))
+				fi
+			done
+
+			echo "Memcached connection request failed with ${counter} retry(s)." 1>&2
+			return 1
+			;;
+
 		*)
 			echo "Unknown resource." 1>&2
 			echo "Usage: " 1>&2

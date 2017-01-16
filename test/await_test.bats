@@ -64,3 +64,13 @@
 	run await mysql -r 1 -h junk
 	[ $status -eq 1 ]
 }
+
+@test "successful memcached connection with retry" {
+	run await memcached -h memcached -r 2
+	[ $status -eq 0 ]
+}
+
+@test "unsuccessful memcached connection with retry" {
+	run await memcached -h junk -r 2
+	[ $status -eq 1 ]
+}
