@@ -73,7 +73,7 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if mongo --quiet "${host}:${port}/local" --eval 'db.stats()' > /dev/null ; then
+				if mongostats "$@" "mongodb://${host}:${port}/local" > /dev/null ; then
 					echo "Mongo connection request to ${host}:${port} succeeded."
 					return 0
 				else

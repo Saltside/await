@@ -1,22 +1,16 @@
 FROM alpine:3.5
 
 RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
-	&& apk add --no-cache \
-			bash \
-			ca-certificates \
-			curl \
-			mongodb \
-			py2-pip \
-			redis \
-			mysql-client \
-	&& pip install awscli \
-	&& curl -sSL -o /tmp/bats.tar.gz 'https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz' \
-	&& tar xzvf /tmp/bats.tar.gz -C /tmp \
-	&& cd /tmp/bats-0.4.0 \
-	&& ./install.sh /usr/local \
-	&& rm /tmp/bats.tar.gz
-
-# Install bats for testing
+	&& apk add --update --no-cache \
+		bash \
+		bats \
+		curl \
+		py2-pip \
+		redis \
+		mysql-client \
+	&& pip install \
+		awscli \
+		pymongo
 
 RUN mkdir -p /usr/src/await/bin /usr/src/await/test
 WORKDIR /usr/src/await
