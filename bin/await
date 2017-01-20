@@ -109,7 +109,8 @@ main() {
 			;;
 
 		dynamodb)
-			local retry=3 counter=0
+			local counter=0 retry=3
+
 			while getopts ":r:" opt; do
 				case "${opt}" in
 					r)
