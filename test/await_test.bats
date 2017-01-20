@@ -11,12 +11,12 @@
 }
 
 @test "successful mongodb connection" {
-	run await mongodb -h mongodb -r 5
+	run await mongodb -r 5 mongodb://mongodb
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful mongodb connection" {
-	run await mongodb -h junk -r 1
+	run await mongodb -r 1 mongodb://unknown
 	[ $status -eq 1 ]
 }
 
@@ -56,12 +56,12 @@
 }
 
 @test "successful mysql connection with retry" {
-	run await mysql -h mysql -r 5 -- --user=root --password=secret mydb
+	run await mysql -r 5 mysql://root:secret@mysql:3306
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful mysql connection with retry" {
-	run await mysql -r 1 -h junk
+	run await mysql -r 1 mysql://unknown
 	[ $status -eq 1 ]
 }
 
