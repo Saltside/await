@@ -64,7 +64,7 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if mongo_check "$@" ; then
+				if mongo_check "$@"; then
 					return 0
 				else
 					((counter++))
@@ -97,7 +97,7 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if redis_check "$@" ; then
+				if redis_check "$@"; then
 					return 0
 				else
 					((counter++))
@@ -129,7 +129,7 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if aws dynamodb "$@" list-tables > /dev/null ; then
+				if aws dynamodb "$@" list-tables > /dev/null; then
 					echo "Dynamodb connection request succeeded."
 					return 0
 				else
@@ -163,7 +163,7 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if mysql_check "$@" ; then
+				if mysql_check "$@"; then
 					return 0
 				else
 					((counter++))
@@ -202,7 +202,7 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if echo stats | nc "${host}" "${port}" > /dev/null ; then
+				if echo stats | nc "${host}" "${port}" > /dev/null; then
 					echo "Memcached connection request succeeded."
 					return 0
 				else
