@@ -7,17 +7,24 @@ VERSION := 0.1.0
 MAJOR   := $(word 1, $(subst ., ,$(VERSION)))
 MINOR   := $(word 2, $(subst ., ,$(VERSION)))
 
+BIN_FILES := $(wildcard bin/*)
+TEST_FILES := $(wildcard test/*.bats)
+
 ENVIRONMENT := tmp/environment
 
-$(ENVIRONMENT): docker-compose.yml
+$(ENVIRONMENT): docker-compose.yml Dockerfile
+$(ENVIRONMENT): $(BIN_FILES) $(TEST_FILES)
 	docker-compose build
 	docker-compose up -d mongodb redis http dynamodb mysql memcached
 	mkdir -p $(@D)
 	touch $@
 
+.PHONY: build
+build: $(ENVIRONMENT)
+
 .PHONY: test-bin
-test-bin: $(ENVIRONMENT)
-	docker-compose run --rm await bats test/await_test.bats
+test-bin: build
+	docker-compose run --rm await bats $(TEST_FILES)
 
 .PHONY: test-lint
 test-lint:
