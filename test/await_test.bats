@@ -21,22 +21,22 @@
 }
 
 @test "successful http connection" {
-	run await http -h http -r 5
+	run await http -r 5 http://http
 	[ $status -eq 0 ]
 }
 
 @test "successful http connection with extra parameters" {
-	run await http -h http -r 2 -- -m 5
+	run await http -r 2 -- http://http -m 5
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful http connection" {
-	run await http -h junk -r 1
+	run await http http://unknown
 	[ $status -eq 1 ]
 }
 
 @test "unsuccessful http connection with retry" {
-	run await http -h junk -r 1
+	run await http -r 1 http://unkown
 	[ $status -eq 1 ]
 }
 

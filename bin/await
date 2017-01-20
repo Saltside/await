@@ -9,13 +9,10 @@ main() {
 
 	case "${subcommand}" in
 		http)
-			local host counter=0 retry=3
+			local counter=0 retry=3
 
-			while getopts ":h:r:" opt; do
+			while getopts ":r:" opt; do
 				case "${opt}" in
-					h)
-						host="${OPTARG}"
-						;;
 					r)
 						retry="${OPTARG}"
 						;;
@@ -33,15 +30,15 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if curl -s --fail "$@" "${host}" > /dev/null; then
-					echo "http request to ${host} succeeded ."
+				if curl -s --fail "$@"; then
+					echo "OK!"
 					return 0
 				else
 					((counter++))
 				fi
 			done
 
-			echo "http request to ${host} failed with ${counter} retry(s)." 1>&2
+			echo "http request failed with ${counter} retry(s)." 1>&2
 			return 1
 			;;
 
