@@ -8,6 +8,7 @@ RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositorie
 		py2-pip \
 	&& pip install \
 		boto3 \
+		pymemcache \
 		pymongo \
 		PyMySQL \
 		redis

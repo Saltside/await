@@ -174,16 +174,10 @@ main() {
 			;;
 
 		memcached)
-			local host port=11211 counter=0 retry=3
+			local counter=0 retry=3
 
-			while getopts ":h:p:r:" opt; do
+			while getopts ":r:" opt; do
 				case "${opt}" in
-					h)
-						host="${OPTARG}"
-						;;
-					p)
-						port="${OPTARG}"
-						;;
 					r)
 						retry="${OPTARG}"
 						;;
@@ -201,8 +195,7 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if echo stats | nc "${host}" "${port}" > /dev/null; then
-					echo "Memcached connection request succeeded."
+				if memcached_check "$@"; then
 					return 0
 				else
 					((counter++))

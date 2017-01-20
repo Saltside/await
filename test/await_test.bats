@@ -66,11 +66,11 @@
 }
 
 @test "successful memcached connection with retry" {
-	run await memcached -h memcached -r 2
+	run await memcached -r 2 tcp://memcached:11211
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful memcached connection with retry" {
-	run await memcached -h junk -r 2
+	run await memcached -r 2 tcp://unknown:11211
 	[ $status -eq 1 ]
 }
