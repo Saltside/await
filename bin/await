@@ -129,8 +129,7 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if aws dynamodb "$@" list-tables > /dev/null; then
-					echo "Dynamodb connection request succeeded."
+				if dynamodb_check "$@"; then
 					return 0
 				else
 					((counter++))

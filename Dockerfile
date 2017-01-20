@@ -7,7 +7,7 @@ RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositorie
 		curl \
 		py2-pip \
 	&& pip install \
-		awscli \
+		boto3 \
 		pymongo \
 		PyMySQL \
 		redis

@@ -41,17 +41,17 @@
 }
 
 @test "successful dynamodb connection" {
-	run await dynamodb -- --endpoint-url "${DYNAMO_DB_URL}"
+	run await dynamodb "${DYNAMO_DB_URL}"
 	[ $status -eq 0 ]
 }
 
 @test "successful dynamodb connection with retry" {
-	run await dynamodb -r 2 -- --endpoint-url "${DYNAMO_DB_URL}"
+	run await dynamodb -r 2 "${DYNAMO_DB_URL}"
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful dynamodb connection with retry" {
-	run await dynamodb -r 1 -- --endpoint-url "http://junk:8080" --cli-connect-timeout 5
+	run await dynamodb -r 1 "http://unknown:8080"
 	[ $status -eq 1 ]
 }
 
