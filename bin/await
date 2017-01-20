@@ -73,15 +73,14 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if mongostats "$@" "mongodb://${host}:${port}/local" > /dev/null ; then
-					echo "Mongo connection request to ${host}:${port} succeeded."
+				if mongo_check "$@" ; then
 					return 0
 				else
 					((counter++))
 				fi
 			done
 
-			echo "mongo connection request to ${host}:${port} failed with ${counter} retry(s)" 1>&2
+			echo "mongo connection request failed with ${counter} retry(s)" 1>&2
 			return 1
 			;;
 
