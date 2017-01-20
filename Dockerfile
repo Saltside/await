@@ -6,11 +6,11 @@ RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositorie
 		bats \
 		curl \
 		py2-pip \
-		redis \
 	&& pip install \
 		awscli \
 		pymongo \
-		PyMySQL
+		PyMySQL \
+		redis
 
 RUN mkdir -p /usr/src/await/bin /usr/src/await/test
 WORKDIR /usr/src/await

@@ -79,16 +79,10 @@ main() {
 			;;
 
 		redis)
-			local host port=6379 counter=0 retry=3
+			local counter=0 retry=3
 
-			while getopts ":h:p:r:" opt; do
+			while getopts ":r:" opt; do
 				case "${opt}" in
-					h)
-						host="${OPTARG}"
-						;;
-					p)
-						port="${OPTARG}"
-						;;
 					r)
 						retry="${OPTARG}"
 						;;
@@ -106,15 +100,14 @@ main() {
 			shift $((OPTIND-1))
 
 			while [ "${counter}" -lt "${retry}" ]; do
-				if redis-cli -h "${host}" -p "${port}" ping > /dev/null ; then
-					echo "Redis connection request to ${host}:${port} succeeded."
+				if redis_check "$@" ; then
 					return 0
 				else
 					((counter++))
 				fi
 			done
 
-			echo "Redis connection request to ${host}:${port} failed with ${counter} retry(s)" 1>&2
+			echo "Redis connection request failed with ${counter} retry(s)" 1>&2
 			return 1
 			;;
 

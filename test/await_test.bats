@@ -1,12 +1,12 @@
 #!/usr/bin/env bats
 
 @test "successful redis connection" {
-	run await redis -h redis -r 5
+	run await redis -r 5 redis://redis
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful redis connection" {
-	run await redis -h junk -r 1
+	run await redis -r 1 redis://unknown
 	[ $status -eq 1 ]
 }
 
