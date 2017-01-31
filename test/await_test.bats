@@ -74,3 +74,13 @@
 	run await -r 2 memcached://unknown:11211
 	[ $status -eq 1 ]
 }
+
+@test "successfull command with retry" {
+	run await -r 2 cmd -- true
+	[ $status -eq 0 ]
+}
+
+@test "unsuccessfull command with retry" {
+	run await -r 2 cmd -- false
+	[ $status -eq 1 ]
+}

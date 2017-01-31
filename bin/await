@@ -43,6 +43,10 @@ main() {
 	local uri="${1:-}"
 	shift
 
+	if [ "${1:-}" = '--' ]; then
+		shift
+	fi
+
 	case "${uri}" in
 		http://*|https://*)
 			await "${retries}" -- curl -s --fail "$@" "${uri}"
@@ -61,6 +65,9 @@ main() {
 			;;
 		memcached://*)
 			await "${retries}" -- memcached_check "$@" "${uri}"
+			;;
+		cmd)
+			await "${retries}" -- "$@"
 			;;
 		*)
 			echo "Unknown resource." 1>&2
