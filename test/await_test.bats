@@ -94,3 +94,8 @@
 	[ $status -eq 1 ]
 	echo "${output}" | grep -Fi 'usage'
 }
+
+@test "aws CLI is included in the image" {
+	run aws --version
+	[ $status -eq 0 ]
+}
