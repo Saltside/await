@@ -61,6 +61,9 @@ main() {
 	local uri="${1:-}"
 	shift
 
+	# Shift off the -- used to separate await options from per-case connection
+	# options. optparse does not do this in our case because we mix positional
+	# and flag arguments.
 	if [ "${1:-}" = '--' ]; then
 		shift
 	fi
