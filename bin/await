@@ -4,9 +4,9 @@ set -euo pipefail
 
 await() {
 	local retries="${1}" counter=0
-	shift
+	shift 2
 
-	while [ "${counter}" -lt "${retry}" ]; do
+	while [ "${counter}" -lt "${retries}" ]; do
 		if "$@"; then
 			echo "OK!"
 			return 0
@@ -20,12 +20,12 @@ await() {
 }
 
 main() {
-	local retry=60
+	local retries=60
 
 	while getopts ":r:" opt; do
 		case "${opt}" in
 			r)
-				retry="${OPTARG}"
+				retries="${OPTARG}"
 				;;
 			\?)
 				echo "Invalid option: -${OPTARG}" 1>&2
@@ -44,23 +44,23 @@ main() {
 	shift
 
 	case "${uri}" in
-		https?://*)
-			await "${retries}" -- curl -s fail "$@"
+		http://*|https://*)
+			await "${retries}" -- curl -s --fail "$@" "${uri}"
 			;;
 		mongodb://*)
-			await "${retries}" -- mongo_check "$@"
+			await "${retries}" -- mongo_check "$@" "${uri}"
 			;;
 		redis://*)
-			await "${retries}" -- redis_check "$@"
+			await "${retries}" -- redis_check "$@" "${uri}"
 			;;
 		dynamodb://*)
-			await "${retries}" -- dynamoddb_check "$@"
+			await "${retries}" -- dynamodb_check "$@" "${uri}"
 			;;
 		mysql://*)
-			await "${retries}" -- mysql_check "$@"
+			await "${retries}" -- mysql_check "$@" "${uri}"
 			;;
 		memcached://*)
-			await "${retries}" -- memcached_check "$@"
+			await "${retries}" -- memcached_check "$@" "${uri}"
 			;;
 		*)
 			echo "Unknown resource." 1>&2
