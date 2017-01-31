@@ -1,0 +1,26 @@
+version: '2'
+services:
+  mongodb:
+    image: mongo:3
+
+  redis:
+    image: redis:latest
+
+  http:
+    image: nginx:latest
+
+  dynamodb:
+    image: deangiberson/aws-dynamodb-local:latest
+
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: mydb
+
+  memcached:
+    image: memcached
+
+  await:
+    image: saltside/await
+    build: .
