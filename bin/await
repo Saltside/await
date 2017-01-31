@@ -2,6 +2,24 @@
 
 set -euo pipefail
 
+usage() {
+	cat <<'EOF'
+
+USAGE: await [-r RETRIES] [ URI | "cmd" ] [ -- EXTRA_OPTS ]
+
+Forms:
+
+	await [ -r RETRIES ] http://host:port -- [ CURL_OPTS ]
+	await [ -r RETRIES ] https://host:port -- [ CURL_OPTS ]
+	await [ -r RETRIES ] mongodb://host:port -- [ -t SELECTION_TIMEOUT ]
+	await [ -r RETRIES ] redis://host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES ] memcached://host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES ] mysql://user:password@host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES ] dynamodb://host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES ] cmd -- COMMAND [ OPTIONS ]
+EOF
+}
+
 await() {
 	local retries="${1}" counter=0
 	shift 2
@@ -67,13 +85,17 @@ main() {
 			await "${retries}" -- memcached_check "$@" "${uri}"
 			;;
 		cmd)
-			await "${retries}" -- "$@"
+			if [ $# -ne 0 ]; then
+				await "${retries}" -- "$@"
+			else
+				usage 1>&2
+				return 1
+			fi
 			;;
 		*)
-			echo "Unknown resource." 1>&2
-			echo "Usage: " 1>&2
-			# TODO: to be filled later
+			usage 1>&2
 			return 1
+			;;
 	esac
 }
 

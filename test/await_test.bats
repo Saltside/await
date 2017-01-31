@@ -84,3 +84,13 @@
 	run await -r 2 cmd -- false
 	[ $status -eq 1 ]
 }
+
+@test "cmd without a command" {
+	run await -r 2 cmd
+	[ $status -eq 1 ]
+	echo "${output}" | grep -Fi 'usage'
+
+	run await -r 2 cmd --
+	[ $status -eq 1 ]
+	echo "${output}" | grep -Fi 'usage'
+}
