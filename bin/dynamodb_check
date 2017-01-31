@@ -5,11 +5,13 @@ from botocore.client import Config
 
 
 def main(args):
+    parts = urlparse(args.url)
+
     config = Config(connect_timeout=args.timeout,
                     read_timeout=args.timeout)
 
     client = boto3.client("dynamodb",
-                          endpoint_url=args.url,
+                          endpoint_url="http://%s:%s" % (parts.host, parts.port)
                           config=config)
 
     client.list_tables()

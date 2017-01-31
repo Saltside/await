@@ -2,217 +2,71 @@
 
 set -euo pipefail
 
-main() {
-
-	local subcommand="${1:-}"
+await() {
+	local retries="${1}" counter=0
 	shift
 
-	case "${subcommand}" in
-		http)
-			local counter=0 retry=3
+	while [ "${counter}" -lt "${retry}" ]; do
+		if "$@"; then
+			echo "OK!"
+			return 0
+		else
+			((counter++))
+		fi
+	done
 
-			while getopts ":r:" opt; do
-				case "${opt}" in
-					r)
-						retry="${OPTARG}"
-						;;
-					\?)
-						echo "Invalid option: -${OPTARG}" 1>&2
-						return 1
-						;;
-					:)
-						echo "Option -${OPTARG} requires an argument." 1>&2
-						return 1
-						;;
-				esac
-			done
+	echo "failed with ${counter} retry(s)." 1>&2
+	return 1
+}
 
-			shift $((OPTIND-1))
+main() {
+	local retry=60
 
-			while [ "${counter}" -lt "${retry}" ]; do
-				if curl -s --fail "$@"; then
-					echo "OK!"
-					return 0
-				else
-					((counter++))
-				fi
-			done
+	while getopts ":r:" opt; do
+		case "${opt}" in
+			r)
+				retry="${OPTARG}"
+				;;
+			\?)
+				echo "Invalid option: -${OPTARG}" 1>&2
+				return 1
+				;;
+			:)
+				echo "Option -${OPTARG} requires an argument." 1>&2
+				return 1
+				;;
+		esac
+	done
 
-			echo "http request failed with ${counter} retry(s)." 1>&2
-			return 1
+	shift $((OPTIND-1))
+
+	local uri="${1:-}"
+	shift
+
+	case "${uri}" in
+		https?://*)
+			await "${retries}" -- curl -s fail "$@"
 			;;
-
-		mongodb)
-			local counter=0 retry=3
-
-			while getopts ":r:" opt; do
-				case "${opt}" in
-					r)
-						retry="${OPTARG}"
-						;;
-					\?)
-						echo "Invalid option: -${OPTARG} for mongo connection check." 1>&2
-						return 1
-						;;
-					:)
-						echo "Option -${OPTARG} requires an argument." 1>&2
-						return 1
-						;;
-				esac
-			done
-
-			shift $((OPTIND-1))
-
-			while [ "${counter}" -lt "${retry}" ]; do
-				if mongo_check "$@"; then
-					return 0
-				else
-					((counter++))
-				fi
-			done
-
-			echo "mongo connection request failed with ${counter} retry(s)" 1>&2
-			return 1
+		mongodb://*)
+			await "${retries}" -- mongo_check "$@"
 			;;
-
-		redis)
-			local counter=0 retry=3
-
-			while getopts ":r:" opt; do
-				case "${opt}" in
-					r)
-						retry="${OPTARG}"
-						;;
-					\?)
-						echo "Invalid option: -${OPTARG} for redis connection check." 1>&2
-						return 1
-						;;
-					:)
-						echo "Option -${OPTARG} requires an argument." 1>&2
-						return 1
-						;;
-				esac
-			done
-
-			shift $((OPTIND-1))
-
-			while [ "${counter}" -lt "${retry}" ]; do
-				if redis_check "$@"; then
-					return 0
-				else
-					((counter++))
-				fi
-			done
-
-			echo "Redis connection request failed with ${counter} retry(s)" 1>&2
-			return 1
+		redis://*)
+			await "${retries}" -- redis_check "$@"
 			;;
-
-		dynamodb)
-			local counter=0 retry=3
-
-			while getopts ":r:" opt; do
-				case "${opt}" in
-					r)
-						retry="${OPTARG}"
-						;;
-					\?)
-						echo "Invalid option: -${OPTARG} for dynamodb connection check." 1>&2
-						return 1
-						;;
-					:)
-						echo "Option -${OPTARG} requires an argument." 1>&2
-						return 1
-						;;
-				esac
-			done
-
-			shift $((OPTIND-1))
-
-			while [ "${counter}" -lt "${retry}" ]; do
-				if dynamodb_check "$@"; then
-					return 0
-				else
-					((counter++))
-				fi
-			done
-
-			echo "Dynamodb connection request failed with ${counter} retry(s)." 1>&2
-			return 1
+		dynamodb://*)
+			await "${retries}" -- dynamoddb_check "$@"
 			;;
-
-		mysql)
-			local counter=0 retry=3
-
-			while getopts ":r:" opt; do
-				case "${opt}" in
-					r)
-						retry="${OPTARG}"
-						;;
-					\?)
-						echo "Invalid option: -${OPTARG} for mysql connection check." 1>&2
-						return 1
-						;;
-					:)
-						echo "Option -${OPTARG} requires an argument." 1>&2
-						return 1
-						;;
-				esac
-			done
-
-			shift $((OPTIND-1))
-
-			while [ "${counter}" -lt "${retry}" ]; do
-				if mysql_check "$@"; then
-					return 0
-				else
-					((counter++))
-				fi
-			done
-
-			echo "Mysql connection request failed with ${counter} retry(s)." 1>&2
-			return 1
+		mysql://*)
+			await "${retries}" -- mysql_check "$@"
 			;;
-
-		memcached)
-			local counter=0 retry=3
-
-			while getopts ":r:" opt; do
-				case "${opt}" in
-					r)
-						retry="${OPTARG}"
-						;;
-					\?)
-						echo "Invalid option: -${OPTARG} for memcached connection check." 1>&2
-						return 1
-						;;
-					:)
-						echo "Option -${OPTARG} requires an argument." 1>&2
-						return 1
-						;;
-				esac
-			done
-
-			shift $((OPTIND-1))
-
-			while [ "${counter}" -lt "${retry}" ]; do
-				if memcached_check "$@"; then
-					return 0
-				else
-					((counter++))
-				fi
-			done
-
-			echo "Memcached connection request failed with ${counter} retry(s)." 1>&2
-			return 1
+		memcached://*)
+			await "${retries}" -- memcached_check "$@"
 			;;
-
 		*)
 			echo "Unknown resource." 1>&2
 			echo "Usage: " 1>&2
 			# TODO: to be filled later
 			return 1
-
 	esac
 }
 
