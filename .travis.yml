@@ -6,9 +6,11 @@ services:
 script:
   - make test-ci
 
-after_success:
-  - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-  - make push
+deploy:
+  provider: script
+  script: script/ci/deploy
+  on:
+    branch: master
 
 env:
   global:

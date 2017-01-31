@@ -11,7 +11,8 @@ RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositorie
 		pymemcache \
 		pymongo \
 		PyMySQL \
-		redis
+		redis \
+		awscli
 
 RUN mkdir -p /usr/src/await/bin /usr/src/await/test
 WORKDIR /usr/src/await

@@ -2,217 +2,103 @@
 
 set -euo pipefail
 
-main() {
+usage() {
+	cat <<'EOF'
 
-	local subcommand="${1:-}"
+USAGE: await [-r RETRIES] [ URI | "cmd" ] [ -- EXTRA_OPTS ]
+
+Forms:
+
+	await [ -r RETRIES ] http://host:port -- [ CURL_OPTS ]
+	await [ -r RETRIES ] https://host:port -- [ CURL_OPTS ]
+	await [ -r RETRIES ] mongodb://host:port -- [ -t SELECTION_TIMEOUT ]
+	await [ -r RETRIES ] redis://host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES ] memcached://host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES ] mysql://user:password@host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES ] dynamodb://host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES ] cmd -- COMMAND [ OPTIONS ]
+EOF
+}
+
+await() {
+	local retries="${1}" counter=0
+	shift 2
+
+	while [ "${counter}" -lt "${retries}" ]; do
+		if "$@"; then
+			echo "OK!"
+			return 0
+		else
+			((counter++))
+		fi
+	done
+
+	echo "failed with ${counter} retry(s)." 1>&2
+	return 1
+}
+
+main() {
+	local retries=60
+
+	while getopts ":r:" opt; do
+		case "${opt}" in
+			r)
+				retries="${OPTARG}"
+				;;
+			\?)
+				echo "Invalid option: -${OPTARG}" 1>&2
+				return 1
+				;;
+			:)
+				echo "Option -${OPTARG} requires an argument." 1>&2
+				return 1
+				;;
+		esac
+	done
+
+	shift $((OPTIND-1))
+
+	local uri="${1:-}"
 	shift
 
-	case "${subcommand}" in
-		http)
-			local counter=0 retry=3
+	# Shift off the -- used to separate await options from per-case connection
+	# options. optparse does not do this in our case because we mix positional
+	# and flag arguments.
+	if [ "${1:-}" = '--' ]; then
+		shift
+	fi
 
-			while getopts ":r:" opt; do
-				case "${opt}" in
-					r)
-						retry="${OPTARG}"
-						;;
-					\?)
-						echo "Invalid option: -${OPTARG}" 1>&2
-						return 1
-						;;
-					:)
-						echo "Option -${OPTARG} requires an argument." 1>&2
-						return 1
-						;;
-				esac
-			done
-
-			shift $((OPTIND-1))
-
-			while [ "${counter}" -lt "${retry}" ]; do
-				if curl -s --fail "$@"; then
-					echo "OK!"
-					return 0
-				else
-					((counter++))
-				fi
-			done
-
-			echo "http request failed with ${counter} retry(s)." 1>&2
-			return 1
+	case "${uri}" in
+		http://*|https://*)
+			await "${retries}" -- curl -s --fail "$@" "${uri}"
 			;;
-
-		mongodb)
-			local counter=0 retry=3
-
-			while getopts ":r:" opt; do
-				case "${opt}" in
-					r)
-						retry="${OPTARG}"
-						;;
-					\?)
-						echo "Invalid option: -${OPTARG} for mongo connection check." 1>&2
-						return 1
-						;;
-					:)
-						echo "Option -${OPTARG} requires an argument." 1>&2
-						return 1
-						;;
-				esac
-			done
-
-			shift $((OPTIND-1))
-
-			while [ "${counter}" -lt "${retry}" ]; do
-				if mongo_check "$@"; then
-					return 0
-				else
-					((counter++))
-				fi
-			done
-
-			echo "mongo connection request failed with ${counter} retry(s)" 1>&2
-			return 1
+		mongodb://*)
+			await "${retries}" -- mongo_check "$@" "${uri}"
 			;;
-
-		redis)
-			local counter=0 retry=3
-
-			while getopts ":r:" opt; do
-				case "${opt}" in
-					r)
-						retry="${OPTARG}"
-						;;
-					\?)
-						echo "Invalid option: -${OPTARG} for redis connection check." 1>&2
-						return 1
-						;;
-					:)
-						echo "Option -${OPTARG} requires an argument." 1>&2
-						return 1
-						;;
-				esac
-			done
-
-			shift $((OPTIND-1))
-
-			while [ "${counter}" -lt "${retry}" ]; do
-				if redis_check "$@"; then
-					return 0
-				else
-					((counter++))
-				fi
-			done
-
-			echo "Redis connection request failed with ${counter} retry(s)" 1>&2
-			return 1
+		redis://*)
+			await "${retries}" -- redis_check "$@" "${uri}"
 			;;
-
-		dynamodb)
-			local counter=0 retry=3
-
-			while getopts ":r:" opt; do
-				case "${opt}" in
-					r)
-						retry="${OPTARG}"
-						;;
-					\?)
-						echo "Invalid option: -${OPTARG} for dynamodb connection check." 1>&2
-						return 1
-						;;
-					:)
-						echo "Option -${OPTARG} requires an argument." 1>&2
-						return 1
-						;;
-				esac
-			done
-
-			shift $((OPTIND-1))
-
-			while [ "${counter}" -lt "${retry}" ]; do
-				if dynamodb_check "$@"; then
-					return 0
-				else
-					((counter++))
-				fi
-			done
-
-			echo "Dynamodb connection request failed with ${counter} retry(s)." 1>&2
-			return 1
+		dynamodb://*)
+			await "${retries}" -- dynamodb_check "$@" "${uri}"
 			;;
-
-		mysql)
-			local counter=0 retry=3
-
-			while getopts ":r:" opt; do
-				case "${opt}" in
-					r)
-						retry="${OPTARG}"
-						;;
-					\?)
-						echo "Invalid option: -${OPTARG} for mysql connection check." 1>&2
-						return 1
-						;;
-					:)
-						echo "Option -${OPTARG} requires an argument." 1>&2
-						return 1
-						;;
-				esac
-			done
-
-			shift $((OPTIND-1))
-
-			while [ "${counter}" -lt "${retry}" ]; do
-				if mysql_check "$@"; then
-					return 0
-				else
-					((counter++))
-				fi
-			done
-
-			echo "Mysql connection request failed with ${counter} retry(s)." 1>&2
-			return 1
+		mysql://*)
+			await "${retries}" -- mysql_check "$@" "${uri}"
 			;;
-
-		memcached)
-			local counter=0 retry=3
-
-			while getopts ":r:" opt; do
-				case "${opt}" in
-					r)
-						retry="${OPTARG}"
-						;;
-					\?)
-						echo "Invalid option: -${OPTARG} for memcached connection check." 1>&2
-						return 1
-						;;
-					:)
-						echo "Option -${OPTARG} requires an argument." 1>&2
-						return 1
-						;;
-				esac
-			done
-
-			shift $((OPTIND-1))
-
-			while [ "${counter}" -lt "${retry}" ]; do
-				if memcached_check "$@"; then
-					return 0
-				else
-					((counter++))
-				fi
-			done
-
-			echo "Memcached connection request failed with ${counter} retry(s)." 1>&2
-			return 1
+		memcached://*)
+			await "${retries}" -- memcached_check "$@" "${uri}"
 			;;
-
+		cmd)
+			if [ $# -ne 0 ]; then
+				await "${retries}" -- "$@"
+			else
+				usage 1>&2
+				return 1
+			fi
+			;;
 		*)
-			echo "Unknown resource." 1>&2
-			echo "Usage: " 1>&2
-			# TODO: to be filled later
+			usage 1>&2
 			return 1
-
+			;;
 	esac
 }
 
