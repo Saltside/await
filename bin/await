@@ -22,7 +22,7 @@ EOF
 
 await() {
 	local retries="${1}" interval="${2}" counter=0
-	shift 2
+	shift 3 # 3 for --
 
 	while [ "${counter}" -lt "${retries}" ]; do
 		if "$@"; then
@@ -38,11 +38,11 @@ await() {
 	done
 
 	echo "failed with ${counter} retry(s)." 1>&2
-	return 1
+	return 2
 }
 
 main() {
-	local retries=60
+	local retries=60 interval=1
 
 	while getopts ":r:i:" opt; do
 		case "${opt}" in
@@ -77,26 +77,26 @@ main() {
 
 	case "${uri}" in
 		http://*|https://*)
-			await "${retries}" -- curl -s --fail "$@" "${uri}"
+			await "${retries}" "${interval}" -- curl -s --fail "$@" "${uri}"
 			;;
 		mongodb://*)
-			await "${retries}" -- mongo_check "$@" "${uri}"
+			await "${retries}" "${interval}" -- mongo_check "$@" "${uri}"
 			;;
 		redis://*)
-			await "${retries}" -- redis_check "$@" "${uri}"
+			await "${retries}" "${interval}" -- redis_check "$@" "${uri}"
 			;;
 		dynamodb://*)
-			await "${retries}" -- dynamodb_check "$@" "${uri}"
+			await "${retries}" "${interval}" -- dynamodb_check "$@" "${uri}"
 			;;
 		mysql://*)
-			await "${retries}" -- mysql_check "$@" "${uri}"
+			await "${retries}" "${interval}" -- mysql_check "$@" "${uri}"
 			;;
 		memcached://*)
-			await "${retries}" -- memcached_check "$@" "${uri}"
+			await "${retries}" "${interval}" -- memcached_check "$@" "${uri}"
 			;;
 		cmd)
 			if [ $# -ne 0 ]; then
-				await "${retries}" -- "$@"
+				await "${retries}" "${interval}" -- "$@"
 			else
 				usage 1>&2
 				return 1

@@ -1,91 +1,152 @@
 #!/usr/bin/env bats
 
 @test "successful redis connection" {
-	run await -r 5 -i 0.5 redis://redis
+	run await redis://redis
+	[ $status -eq 0 ]
+
+	run await -r 1 redis://redis
+	[ $status -eq 0 ]
+
+	run await -i 0.5 redis://redis
+	[ $status -eq 0 ]
+
+	run await -r 1 -i 0.5 redis://redis
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful redis connection" {
-	run await -r 1 redis://unknown
-	[ $status -eq 1 ]
+	run await -r 2 redis://unknown
+	[ $status -eq 2 ]
 }
 
 @test "successful mongodb connection" {
-	run await -r 5 -i 0.5 mongodb://mongodb
+	run await mongodb://mongodb
+	[ $status -eq 0 ]
+
+	run await -r 1 mongodb://mongodb
+	[ $status -eq 0 ]
+
+	run await -i 0.5 mongodb://mongodb
+	[ $status -eq 0 ]
+
+	run await -r 1 -i 0.5 mongodb://mongodb
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful mongodb connection" {
-	run await -r 1 mongodb://unknown
-	[ $status -eq 1 ]
+	run await -r 2 mongodb://unknown
+	[ $status -eq 2 ]
 }
 
 @test "successful http connection" {
+	run await http://http
+	[ $status -eq 0 ]
+
+	run await -r 5 http://http
+	[ $status -eq 0 ]
+
+	run await -i 0.5 http://http
+	[ $status -eq 0 ]
+
 	run await -r 5 -i 0.5 http://http
 	[ $status -eq 0 ]
 }
 
 @test "successful http connection with extra parameters" {
+	run await -- http://http -m 5
+	[ $status -eq 0 ]
+
 	run await -r 2 -i 0.5 -- http://http -m 5
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful http connection" {
-	run await http://unknown
-	[ $status -eq 1 ]
-}
-
-@test "unsuccessful http connection" {
-	run await -r 1 http://unkown
-	[ $status -eq 1 ]
+	run await -r 2 http://unknown
+	[ $status -eq 2 ]
 }
 
 @test "successful dynamodb connection" {
+	run await dynamodb://dynamodb:8000
+	[ $status -eq 0 ]
+
+	run await -r 2 dynamodb://dynamodb:8000
+	[ $status -eq 0 ]
+
+	run await -i 0.5 dynamodb://dynamodb:8000
+	[ $status -eq 0 ]
+
 	run await -r 2 -i 0.5 dynamodb://dynamodb:8000
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful dynamodb connection with retry" {
 	run await -r 2 dynamodb://unknown:8000
-	[ $status -eq 1 ]
+	[ $status -eq 2 ]
 }
 
 @test "successful mysql connection" {
+	run await mysql://root:secret@mysql:3306
+	[ $status -eq 0 ]
+
+	run await -r 5 mysql://root:secret@mysql:3306
+	[ $status -eq 0 ]
+
+	run await  -i 0.5 mysql://root:secret@mysql:3306
+	[ $status -eq 0 ]
+
 	run await -r 5 -i 0.5 mysql://root:secret@mysql:3306
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful mysql" {
 	run await -r 1 mysql://unknown
-	[ $status -eq 1 ]
+	[ $status -eq 2 ]
 }
 
 @test "successful memcached connection" {
+	run await memcached://memcached:11211
+	[ $status -eq 0 ]
+
+	run await -r 2 memcached://memcached:11211
+	[ $status -eq 0 ]
+
+	run await -i 0.5 memcached://memcached:11211
+	[ $status -eq 0 ]
+
 	run await -r 2 -i 0.5 memcached://memcached:11211
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful memcached connection" {
 	run await -r 2 memcached://unknown:11211
-	[ $status -eq 1 ]
+	[ $status -eq 2 ]
 }
 
-@test "successfull command with retry" {
+@test "successfull command" {
+	run await cmd -- true
+	[ $status -eq 0 ]
+
 	run await -r 2 cmd -- true
+	[ $status -eq 0 ]
+
+	run await -i 2 cmd -- true
+	[ $status -eq 0 ]
+
+	run await -r 2 -i 1 cmd -- true
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessfull command with retry" {
 	run await -r 2 cmd -- false
-	[ $status -eq 1 ]
+	[ $status -eq 2 ]
 }
 
 @test "cmd without a command" {
-	run await -r 2 cmd
+	run await cmd
 	[ $status -eq 1 ]
 	echo "${output}" | grep -Fi 'usage'
 
-	run await -r 2 cmd --
+	run await cmd --
 	[ $status -eq 1 ]
 	echo "${output}" | grep -Fi 'usage'
 }
