@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 @test "successful redis connection" {
-	run await -r 5 redis://redis
+	run await -r 5 -i 0.5 redis://redis
 	[ $status -eq 0 ]
 }
 
@@ -11,7 +11,7 @@
 }
 
 @test "successful mongodb connection" {
-	run await -r 5 mongodb://mongodb
+	run await -r 5 -i 0.5 mongodb://mongodb
 	[ $status -eq 0 ]
 }
 
@@ -21,12 +21,12 @@
 }
 
 @test "successful http connection" {
-	run await -r 5 http://http
+	run await -r 5 -i 0.5 http://http
 	[ $status -eq 0 ]
 }
 
 @test "successful http connection with extra parameters" {
-	run await -r 2 -- http://http -m 5
+	run await -r 2 -i 0.5 -- http://http -m 5
 	[ $status -eq 0 ]
 }
 
@@ -35,42 +35,37 @@
 	[ $status -eq 1 ]
 }
 
-@test "unsuccessful http connection with retry" {
+@test "unsuccessful http connection" {
 	run await -r 1 http://unkown
 	[ $status -eq 1 ]
 }
 
 @test "successful dynamodb connection" {
-	run await dynamodb://dynamodb:8000
-	[ $status -eq 0 ]
-}
-
-@test "successful dynamodb connection with retry" {
-	run await -r 2 dynamodb://dynamodb:8000
+	run await -r 2 -i 0.5 dynamodb://dynamodb:8000
 	[ $status -eq 0 ]
 }
 
 @test "unsuccessful dynamodb connection with retry" {
-	run await -r 1 dynamodb://unknown:8000
+	run await -r 2 dynamodb://unknown:8000
 	[ $status -eq 1 ]
 }
 
-@test "successful mysql connection with retry" {
-	run await -r 5 mysql://root:secret@mysql:3306
+@test "successful mysql connection" {
+	run await -r 5 -i 0.5 mysql://root:secret@mysql:3306
 	[ $status -eq 0 ]
 }
 
-@test "unsuccessful mysql connection with retry" {
+@test "unsuccessful mysql" {
 	run await -r 1 mysql://unknown
 	[ $status -eq 1 ]
 }
 
-@test "successful memcached connection with retry" {
-	run await -r 2 memcached://memcached:11211
+@test "successful memcached connection" {
+	run await -r 2 -i 0.5 memcached://memcached:11211
 	[ $status -eq 0 ]
 }
 
-@test "unsuccessful memcached connection with retry" {
+@test "unsuccessful memcached connection" {
 	run await -r 2 memcached://unknown:11211
 	[ $status -eq 1 ]
 }
