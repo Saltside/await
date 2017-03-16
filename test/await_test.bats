@@ -12,6 +12,12 @@
 
 	run await -r 1 -i 0.5 redis://redis
 	[ $status -eq 0 ]
+
+	run await -r 1 -i 0.5 redis://redis -- -t 1
+	[ $status -eq 0 ]
+
+	run await -r 1 -i 0.5 redis://redis -- --timeout 1
+	[ $status -eq 0 ]
 }
 
 @test "unsuccessful redis connection" {
@@ -30,6 +36,15 @@
 	[ $status -eq 0 ]
 
 	run await -r 1 -i 0.5 mongodb://mongodb
+	[ $status -eq 0 ]
+
+	run await -r 1 -i 0.5 mongodb://mongodb -- -t 1
+	[ $status -eq 0 ]
+
+	run await mongodb://mongodb -- -t 1
+	[ $status -eq 0 ]
+
+	run await mongodb://mongodb -- --timeout 1
 	[ $status -eq 0 ]
 }
 
@@ -50,9 +65,7 @@
 
 	run await -r 5 -i 0.5 http://http
 	[ $status -eq 0 ]
-}
 
-@test "successful http connection with extra parameters" {
 	run await -- http://http -m 5
 	[ $status -eq 0 ]
 
@@ -77,9 +90,18 @@
 
 	run await -r 2 -i 0.5 dynamodb://dynamodb:8000
 	[ $status -eq 0 ]
+
+	run await -r 2 -i 0.5 dynamodb://dynamodb:8000 -- -t 1
+	[ $status -eq 0 ]
+
+	run await dynamodb://dynamodb:8000 -- -t 1
+	[ $status -eq 0 ]
+
+	run await dynamodb://dynamodb:8000 -- --timeout 1
+	[ $status -eq 0 ]
 }
 
-@test "unsuccessful dynamodb connection with retry" {
+@test "unsuccessful dynamodb connection" {
 	run await -r 2 dynamodb://unknown:8000
 	[ $status -eq 2 ]
 }
@@ -95,6 +117,15 @@
 	[ $status -eq 0 ]
 
 	run await -r 5 -i 0.5 mysql://root:secret@mysql:3306
+	[ $status -eq 0 ]
+
+	run await -r 5 -i 0.5 mysql://root:secret@mysql:3306 -- -t 1
+	[ $status -eq 0 ]
+
+	run await mysql://root:secret@mysql:3306 -- -t 1
+	[ $status -eq 0 ]
+
+	run await mysql://root:secret@mysql:3306 -- --timeout 1
 	[ $status -eq 0 ]
 }
 
@@ -114,6 +145,15 @@
 	[ $status -eq 0 ]
 
 	run await -r 2 -i 0.5 memcached://memcached:11211
+	[ $status -eq 0 ]
+
+	run await -r 2 -i 0.5 memcached://memcached:11211 -- -t 1
+	[ $status -eq 0 ]
+
+	run await memcached://memcached:11211 -- -t 1
+	[ $status -eq 0 ]
+
+	run await memcached://memcached:11211 -- --timeout 1
 	[ $status -eq 0 ]
 }
 
