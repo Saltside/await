@@ -29,7 +29,10 @@ await() {
 			echo "OK!"
 			return 0
 		else
-			((counter++))
+			# NOTE: The pre-increment usage. This makes the arithmatic expression
+			# always exit 0. The post-increment form exits non-zero when counter
+			# is zero. More information here: http://wiki.bash-hackers.org/syntax/arith_expr#arithmetic_expressions_and_return_codes
+			((++counter))
 		fi
 	done
 
