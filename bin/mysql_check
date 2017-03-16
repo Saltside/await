@@ -15,8 +15,6 @@ def main(args):
         connect_timeout=args.timeout)
 
     connection.ping()
-    print("OK!")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check mysql connection.")

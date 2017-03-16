@@ -7,8 +7,6 @@ def main(args):
     connection = redis.from_url(args.url, socket_connect_timeout=args.timeout)
 
     connection.ping()
-    print("OK!")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check redis connection.")

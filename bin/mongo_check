@@ -11,8 +11,6 @@ def main(args):
         serverSelectionTimeoutMS=timeout)
 
     client.server_info()
-    print("OK!")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check mongodb connection.")

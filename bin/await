@@ -22,10 +22,13 @@ EOF
 
 await() {
 	local retries="${1}" interval="${2}" counter=0
+	local log
+	log="$(mktemp)"
+
 	shift 3 # 3 for --
 
 	while [ "${counter}" -lt "${retries}" ]; do
-		if "$@"; then
+		if "$@" > /dev/null 2> "${log}"; then
 			echo "OK!"
 			return 0
 		else
@@ -38,6 +41,8 @@ await() {
 	done
 
 	echo "failed with ${counter} retry(s)." 1>&2
+	echo 1>&2
+	cat "${log}" 1>&2
 	return 2
 }
 

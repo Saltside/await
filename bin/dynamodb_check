@@ -24,8 +24,6 @@ def main(args):
                           config=config)
 
     client.list_tables()
-    print("OK!")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check dynamodb connection.")

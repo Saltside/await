@@ -17,8 +17,6 @@ def main(args):
                     timeout=args.timeout)
 
     client.stats()
-    print("OK!")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check memcached connection.")
