@@ -3,7 +3,7 @@
 REPO := saltside/await
 
 # Version
-VERSION := 0.1.0
+VERSION := 0.1.1
 MAJOR   := $(word 1, $(subst ., ,$(VERSION)))
 MINOR   := $(word 2, $(subst ., ,$(VERSION)))
 

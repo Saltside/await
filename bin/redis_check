@@ -7,14 +7,12 @@ def main(args):
     connection = redis.from_url(args.url, socket_connect_timeout=args.timeout)
 
     connection.ping()
-    print("OK!")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check redis connection.")
 
     parser.add_argument("url", nargs="?")
-    parser.add_argument("-t", "--timeout", type=int, nargs=1,
+    parser.add_argument("-t", "--timeout", type=float, nargs="?",
                         default=1,
                         help="timeout in seconds (default: 1)")
 

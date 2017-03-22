@@ -5,45 +5,57 @@ set -euo pipefail
 usage() {
 	cat <<'EOF'
 
-USAGE: await [-r RETRIES] [ URI | "cmd" ] [ -- EXTRA_OPTS ]
+USAGE: await [-r RETRIES -i INTERVAL ] [ URI | "cmd" ] [ -- EXTRA_OPTS ]
 
 Forms:
 
-	await [ -r RETRIES ] http://host:port -- [ CURL_OPTS ]
-	await [ -r RETRIES ] https://host:port -- [ CURL_OPTS ]
-	await [ -r RETRIES ] mongodb://host:port -- [ -t SELECTION_TIMEOUT ]
-	await [ -r RETRIES ] redis://host:port -- [ -t CONNECTION_TIMEOUT ]
-	await [ -r RETRIES ] memcached://host:port -- [ -t CONNECTION_TIMEOUT ]
-	await [ -r RETRIES ] mysql://user:password@host:port -- [ -t CONNECTION_TIMEOUT ]
-	await [ -r RETRIES ] dynamodb://host:port -- [ -t CONNECTION_TIMEOUT ]
-	await [ -r RETRIES ] cmd -- COMMAND [ OPTIONS ]
+	await [ -r RETRIES -i INTERVAL ] http://host:port -- [ CURL_OPTS ]
+	await [ -r RETRIES -i INTERVAL ] https://host:port -- [ CURL_OPTS ]
+	await [ -r RETRIES -i INTERVAL ] mongodb://host:port -- [ -t SELECTION_TIMEOUT ]
+	await [ -r RETRIES -i INTERVAL ] redis://host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES -i INTERVAL ] memcached://host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES -i INTERVAL ] mysql://user:password@host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES -i INTERVAL ] dynamodb://host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES -i INTERVAL ] cmd -- COMMAND [ OPTIONS ]
 EOF
 }
 
 await() {
-	local retries="${1}" counter=0
-	shift 2
+	local retries="${1}" interval="${2}" counter=0
+	local log
+	log="$(mktemp)"
+
+	shift 3 # 3 for --
 
 	while [ "${counter}" -lt "${retries}" ]; do
-		if "$@"; then
+		if "$@" > /dev/null 2> "${log}"; then
 			echo "OK!"
 			return 0
 		else
-			((counter++))
+			# NOTE: The pre-increment usage. This makes the arithmatic expression
+			# always exit 0. The post-increment form exits non-zero when counter
+			# is zero. More information here: http://wiki.bash-hackers.org/syntax/arith_expr#arithmetic_expressions_and_return_codes
+			((++counter))
+			sleep "${interval}"
 		fi
 	done
 
 	echo "failed with ${counter} retry(s)." 1>&2
-	return 1
+	echo 1>&2
+	cat "${log}" 1>&2
+	return 2
 }
 
 main() {
-	local retries=60
+	local retries=60 interval=1
 
-	while getopts ":r:" opt; do
+	while getopts ":r:i:" opt; do
 		case "${opt}" in
 			r)
 				retries="${OPTARG}"
+				;;
+			i)
+				interval="${OPTARG}"
 				;;
 			\?)
 				echo "Invalid option: -${OPTARG}" 1>&2
@@ -70,26 +82,26 @@ main() {
 
 	case "${uri}" in
 		http://*|https://*)
-			await "${retries}" -- curl -s --fail "$@" "${uri}"
+			await "${retries}" "${interval}" -- curl -s --fail "$@" "${uri}"
 			;;
 		mongodb://*)
-			await "${retries}" -- mongo_check "$@" "${uri}"
+			await "${retries}" "${interval}" -- mongo_check "$@" "${uri}"
 			;;
 		redis://*)
-			await "${retries}" -- redis_check "$@" "${uri}"
+			await "${retries}" "${interval}" -- redis_check "$@" "${uri}"
 			;;
 		dynamodb://*)
-			await "${retries}" -- dynamodb_check "$@" "${uri}"
+			await "${retries}" "${interval}" -- dynamodb_check "$@" "${uri}"
 			;;
 		mysql://*)
-			await "${retries}" -- mysql_check "$@" "${uri}"
+			await "${retries}" "${interval}" -- mysql_check "$@" "${uri}"
 			;;
 		memcached://*)
-			await "${retries}" -- memcached_check "$@" "${uri}"
+			await "${retries}" "${interval}" -- memcached_check "$@" "${uri}"
 			;;
 		cmd)
 			if [ $# -ne 0 ]; then
-				await "${retries}" -- "$@"
+				await "${retries}" "${interval}" -- "$@"
 			else
 				usage 1>&2
 				return 1

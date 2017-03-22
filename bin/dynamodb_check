@@ -24,14 +24,12 @@ def main(args):
                           config=config)
 
     client.list_tables()
-    print("OK!")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check dynamodb connection.")
 
     parser.add_argument("url", nargs="?")
-    parser.add_argument("-t", "--timeout", type=int, nargs=1,
+    parser.add_argument("-t", "--timeout", type=int, nargs="?",
                         default=1,
                         help="timeout in seconds (default: 1)")
 
