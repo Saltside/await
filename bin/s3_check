@@ -1,0 +1,36 @@
+#!/usr/bin/env python2
+import argparse
+from urlparse import urlparse
+import boto3
+from botocore.client import Config
+
+
+def main(args):
+    parts = urlparse(args.url)
+
+    config = Config(connect_timeout=args.timeout,
+                    read_timeout=args.timeout)
+
+    if parts.port:
+        port = parts.port
+    else:
+        port = 4572
+
+    client = boto3.client("s3",
+                          aws_access_key_id="fake",
+                          aws_secret_access_key="fake",
+                          endpoint_url="http://%s:%s" % (parts.hostname, port),
+                          config=config)
+
+    client.list_buckets()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Check s3 connection.")
+
+    parser.add_argument("url", nargs="?")
+    parser.add_argument("-t", "--timeout", type=int, nargs="?",
+                        default=1,
+                        help="timeout in seconds (default: 1)")
+
+    args = parser.parse_args()
+    main(args)
