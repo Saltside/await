@@ -16,6 +16,7 @@ Forms:
 	await [ -r RETRIES -i INTERVAL ] memcached://host:port -- [ -t CONNECTION_TIMEOUT ]
 	await [ -r RETRIES -i INTERVAL ] mysql://user:password@host:port -- [ -t CONNECTION_TIMEOUT ]
 	await [ -r RETRIES -i INTERVAL ] dynamodb://host:port -- [ -t CONNECTION_TIMEOUT ]
+	await [ -r RETRIES -i INTERVAL ] http://host:port -- [ -t CONNECTION_TIMEOUT ]
 	await [ -r RETRIES -i INTERVAL ] cmd -- COMMAND [ OPTIONS ]
 EOF
 }
@@ -98,6 +99,9 @@ main() {
 			;;
 		memcached://*)
 			await "${retries}" "${interval}" -- memcached_check "$@" "${uri}"
+			;;
+		http://*)
+			await "${retries}" "${interval}" -- s3_check "$@" "${uri}"
 			;;
 		cmd)
 			if [ $# -ne 0 ]; then
